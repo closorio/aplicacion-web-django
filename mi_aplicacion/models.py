@@ -1,5 +1,6 @@
 # Create your models here.
 from django.db import models
+from django.core.exceptions import ValidationError
 
 class Univalluno(models.Model):
     nombres = models.CharField(max_length=100)
@@ -9,6 +10,24 @@ class Univalluno(models.Model):
     numeroDocumento = models.CharField(max_length=10)
     codigoEstudiante = models.CharField(max_length=10)
     correoElectrónico = models.CharField(max_length=100)
+
+    def clean(self):
+        if self.tipoUnivalluno == 'Estudiante':
+            existing_univallunoCod = Univalluno.objects.exclude(id=self.id).filter(codigoEstudiante=self.codigoEstudiante)
+            if existing_univallunoCod.exists():
+                raise ValidationError('Ya existe un Univalluno con el mismo Código de estudiante registrado.')
+
+    def clean(self):
+        existing_univallunoTD = Univalluno.objects.exclude(id=self.id).filter(tipoDocumento=self.tipoDocumento)
+        existing_univallunoID = Univalluno.objects.exclude(id=self.id).filter(numeroDocumento=self.numeroDocumento)
+        if existing_univallunoID.exists() and existing_univallunoTD.exists():
+            raise ValidationError('Ya existe un Univalluno con el mismo Tipo y Número de documento.')
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+    
 
 class ArticuloDeportivo(models.Model):
     nombre = models.CharField(max_length=100)
