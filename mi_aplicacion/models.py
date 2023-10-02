@@ -63,7 +63,7 @@ class Prestamo(models.Model):
         self.clean()
         super().save(*args, **kwargs)
 
-    def completar_prestamo(self):
+    def completarPrestamo(self):
         # Marcar el artículo deportivo como disponible cuando se completa el préstamo
         self.articuloDeportivo.disponible = True
         self.articuloDeportivo.save()
@@ -71,33 +71,23 @@ class Prestamo(models.Model):
     def __str__(self):
         return f"{self.univalluno}"
 
-"""
 class Multas(models.Model):
-    valorMulta = models.PositiveIntegerField()  # Valor de la multa (entero positivo)
-    estado = models.BooleanField(default=False)  # Estado de la multa (por defecto, no pagado)
-    fechaMulta = models.DateTimeField(default=timezone.now)  # Fecha y hora de la generación de la multa
-    fechaPagoMulta = models.DateTimeField(null=True, blank=True)  # Fecha y hora del pago de la multa (puede ser nulo si no se ha pagado)
-
-    def __str__(self):
-        return f"Multa {self.id} - Valor: {self.valorMulta} - Estado: {'Pagado' if self.estado else 'No pagado'}"
-"""
-
-class Multas(models.Model):
+    prestamo = models.ForeignKey(Prestamo, on_delete=models.CASCADE, default=0)
+    univalluno = models.ForeignKey(Univalluno, on_delete=models.CASCADE, default=0)
     valorMulta = models.PositiveIntegerField()
     estado = models.CharField(max_length=100)
     fechaMulta = models.DateTimeField(default=timezone.now)
     fechaPagoMulta = models.DateTimeField(null=True, blank=True)
-    prestamo = models.ForeignKey(Prestamo, on_delete=models.CASCADE, default=1)
-    univalluno = models.ForeignKey(Univalluno, on_delete=models.CASCADE, default=1)
+
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.actualizar_estado_prestamo()
+        self.actualizarEstadoPrestamo()
 
-    def actualizar_estado_prestamo(self):
+    def actualizarEstadoPrestamo(self):
         # Verifica si la multa ha sido pagada y actualiza el estado del préstamo y disponibilidad del artículo
         if self.estado == 'Pagada':
-            self.prestamo.completar_prestamo()
+            self.prestamo.completarPrestamo()
         else:
             self.prestamo.articuloDeportivo.disponible = False
             self.prestamo.articuloDeportivo.save()
