@@ -16,6 +16,12 @@ class UnivallunoAdmin(admin.ModelAdmin):
 
 
 
+class PrestamoAdmin(admin.ModelAdmin):
+    list_display = ('univalluno', 'articulo_deportivo', 'fecha_hora_prestamo', 'fecha_hora_vencimiento')
+
+
+
+
 
 # Register your models here.
 

@@ -1,5 +1,6 @@
 # Create your models here.
 from django.db import models
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 
 class Univalluno(models.Model):
@@ -32,16 +33,34 @@ class Univalluno(models.Model):
 class ArticuloDeportivo(models.Model):
     nombre = models.CharField(max_length=100)
     deporte = models.CharField(max_length=100)
-    descripcion = models.TextField(max_length=100)
+    descripcion = models.TextField(max_length=500)
+    valor = models.DecimalField(max_digits=10, decimal_places=3,default=0.0)
+    disponible = models.BooleanField(default=True)
 
 class Prestamo(models.Model):
     univalluno = models.ForeignKey(Univalluno, on_delete=models.CASCADE)
-    articulo_deportivo = models.ForeignKey(ArticuloDeportivo, on_delete=models.CASCADE)
-    fecha_prestamo = models.DateField()
-    fecha_devolucion = models.DateField()
+    articuloDeportivo = models.ForeignKey(ArticuloDeportivo, on_delete=models.CASCADE)
+    fechaHoraPrestamo = models.DateTimeField(default=timezone.now)
+    fechaHoraVencimiento = models.DateTimeField(default=timezone.now().replace(hour=20, minute=0, second=0, microsecond=0))
 
-    def __str__(self):
-        return f"Prestamo de {self.univalluno.nombres} {self.univalluno.apellidos} - {self.articulo_deportivo.nombre}"
+    def clean(self):
+        # Verifica si el artículo deportivo está en préstamo
+        if self.articuloDeportivo.prestamo_set.filter(fechaHoraVencimiento__isnull=False).exists():
+            raise ValidationError('El artículo deportivo ya está en préstamo.')
+
+    def save(self, *args, **kwargs):
+        # Marcar el artículo deportivo como no disponible cuando se crea el préstamo
+        if not self.id:
+            self.articuloDeportivo.disponible = False
+            self.articuloDeportivo.save()
+
+        self.clean()
+        super().save(*args, **kwargs)
+
+    def completar_prestamo(self):
+        # Marcar el artículo deportivo como disponible cuando se completa el préstamo
+        self.articuloDeportivo.disponible = True
+        self.articuloDeportivo.save()
 
 
     
