@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import Univalluno
 from .models import ArticuloDeportivo
 from .models import Prestamo
+from .models import Multas
 
 
 
@@ -28,3 +29,4 @@ class PrestamoAdmin(admin.ModelAdmin):
 admin.site.register(Univalluno, UnivallunoAdmin)
 admin.site.register(ArticuloDeportivo)
 admin.site.register(Prestamo)
+admin.site.register(Multas)
